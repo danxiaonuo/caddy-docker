@@ -13,7 +13,7 @@ ARG version="v2.0.0"
 # 指定编译插件
 ARG plugins="git,cache,cors,expires,realip,ipfilter,cloudflare,dnspod"
 ARG enable_telemetry="true"
-
+# 获取进程文件
 RUN go get -v github.com/abiosoft/parent
 # 运行编译
 RUN VERSION=${version} PLUGINS=${plugins} ENABLE_TELEMETRY=${enable_telemetry} /bin/sh /usr/bin/builder.sh
@@ -21,7 +21,7 @@ RUN VERSION=${version} PLUGINS=${plugins} ENABLE_TELEMETRY=${enable_telemetry} /
 # 指定创建的基础镜像
 FROM alpine:latest
 # 作者描述信息
-MAINTAINER danxiaonuo
+LABEL maintainer "danxiaonuo <danxiaonuo@danxiaonuo.me>"
 # 语言设置
 ENV LANG zh_CN.UTF-8
 # 时区设置
@@ -35,13 +35,12 @@ RUN apk add -U tzdata \
 && ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
 && echo ${TZ} > /etc/timezone
 
-LABEL maintainer "danxiaonuo <danxiaonuo@danxiaonuo.me>"
-
+# 指定版本号
 ARG version="2.0.0"
 LABEL caddy_version="$version"
 
-# Let's Encrypt Agreement
-ENV ACME_AGREE="false"
+# 自动申请Let's Encrypt证书
+ENV ACME_AGREE="true"
 
 # Telemetry Stats
 ENV ENABLE_TELEMETRY="$enable_telemetry"
@@ -56,15 +55,20 @@ COPY --from=builder /install/caddy /usr/bin/caddy
 RUN /usr/bin/caddy -version
 RUN /usr/bin/caddy -plugins
 
+# 暴露端口
 EXPOSE 80 443 2019
+# 挂载目录
 VOLUME /root/.caddy /srv
+# 工作目录
 WORKDIR /srv
 
+拷贝相关文件
 COPY Caddyfile /etc/Caddyfile
 COPY index.html /srv/index.html
 
-# install process wrapper
+# 安装进程文件
 COPY --from=builder /go/bin/parent /bin/parent
 
+# 运行caddy
 ENTRYPOINT ["/bin/parent", "caddy"]
 CMD ["--conf", "/etc/Caddyfile", "--log", "stdout", "--agree=$ACME_AGREE"]
