@@ -9,7 +9,7 @@ RUN apk add --no-cache git gcc musl-dev
 # 拷贝编译脚本
 COPY builder.sh /usr/bin/builder.sh
 # 指定版本
-ARG version="v2.0.0"
+ARG version="v1"
 # 指定编译插件
 ARG plugins="git,cache,cors,expires,realip,ipfilter,cloudflare,dnspod"
 # 启动数据收集
@@ -37,7 +37,7 @@ RUN apk add -U tzdata \
 && echo ${TZ} > /etc/timezone
 
 # 指定版本号
-ARG version="2.0.0"
+ARG version="v1"
 LABEL caddy_version="$version"
 
 # 启动数据收集
