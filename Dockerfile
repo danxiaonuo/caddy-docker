@@ -46,17 +46,13 @@ ENV ACME_AGREE="false"
 # Telemetry Stats
 ENV ENABLE_TELEMETRY="$enable_telemetry"
 
-RUN apk add --no-cache \
-    ca-certificates \
-    git \
-    mailcap \
-    openssh-client \
-    tzdata
+# 安装相关依赖
+RUN apk add --no-cache ca-certificates mailcap
 
 # 拷贝 caddy 二进制文件至安装目录
 COPY --from=builder /install/caddy /usr/bin/caddy
 
-# validate install
+# 验证安装
 RUN /usr/bin/caddy -version
 RUN /usr/bin/caddy -plugins
 
