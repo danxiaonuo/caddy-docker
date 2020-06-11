@@ -39,14 +39,11 @@ RUN apk add -U tzdata \
 ARG version="2.0.0"
 LABEL caddy_version="$version"
 
-# 自动申请Let's Encrypt证书
-ENV ACME_AGREE="true"
-
 # 启动数据收集
 ENV ENABLE_TELEMETRY="$enable_telemetry"
 
 # 安装相关依赖
-RUN apk add --no-cache ca-certificates mailcap
+RUN apk add --no-cache ca-certificates mailcap openssh-client
 
 # 拷贝 caddy 二进制文件至安装目录
 COPY --from=builder /install/caddy /usr/bin/caddy
@@ -71,4 +68,4 @@ COPY --from=builder /go/bin/parent /bin/parent
 
 # 运行caddy
 ENTRYPOINT ["/bin/parent", "caddy"]
-CMD ["--conf", "/etc/Caddyfile", "--log", "stdout", "--agree=$ACME_AGREE"]
+CMD ["--conf", "/etc/Caddyfile", "--log", "stdout", "--agree"]
