@@ -12,6 +12,7 @@ COPY builder.sh /usr/bin/builder.sh
 ARG version="v2.0.0"
 # 指定编译插件
 ARG plugins="git,cache,cors,expires,realip,ipfilter,cloudflare,dnspod"
+# 启动数据收集
 ARG enable_telemetry="true"
 # 获取进程文件
 RUN go get -v github.com/abiosoft/parent
