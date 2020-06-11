@@ -1,5 +1,5 @@
 # 指定构建的基础镜像
-FROM golang:1.13-alpine as builder
+FROM golang:alpine as builder
 # 修改源
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 # 更新源
