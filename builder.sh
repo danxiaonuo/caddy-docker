@@ -1,14 +1,8 @@
 #!/bin/sh
 
-VERSION=${VERSION:-"2.0.0"}
+VERSION=${VERSION:-"master"}
 TELEMETRY=${ENABLE_TELEMETRY:-"true"}
 IMPORT="github.com/caddyserver/caddy"
-
-# version <1.0.1 needs to use old import path
-new_import=true
-if [ "$(echo $VERSION | cut -c1)" -eq 0 ] 2>/dev/null || [ "$VERSION" = "1.0.0" ]; then 
-    IMPORT="github.com/mholt/caddy" && new_import=false
-fi
 
 # add `v` prefix for version numbers
 [ "$(echo $VERSION | cut -c1)" -ge 0 ] 2>/dev/null && VERSION="v$VERSION"
@@ -28,13 +22,6 @@ end_stage() {
     echo
 }
 
-use_new_import() (
-    cd $1
-    find . -name '*.go' | while read -r f; do
-        sed -i.bak 's/\/mholt\/caddy/\/caddyserver\/caddy/g' $f && rm $f.bak
-    done
-)
-
 get_package() {
     # go module require special dns handling
     if $go_mod && [ -f /dnsproviders/$1/$1.go ]; then
@@ -48,8 +35,6 @@ get_package() {
 
 dns_plugins() {
     git clone https://github.com/caddyserver/dnsproviders /dnsproviders
-    # temp hack for repo rename
-    if $new_import; then use_new_import /dnsproviders; fi
 }
 
 plugins() {
