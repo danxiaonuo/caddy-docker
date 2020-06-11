@@ -60,7 +60,7 @@ VOLUME /root/.caddy /srv
 # 工作目录
 WORKDIR /srv
 
-拷贝相关文件
+# 拷贝相关文件
 COPY Caddyfile /etc/Caddyfile
 COPY index.html /srv/index.html
 
