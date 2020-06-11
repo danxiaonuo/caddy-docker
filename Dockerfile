@@ -18,10 +18,11 @@ RUN go get -v github.com/abiosoft/parent
 # 运行编译
 RUN VERSION=${version} PLUGINS=${plugins} ENABLE_TELEMETRY=${enable_telemetry} /bin/sh /usr/bin/builder.sh
 
-FROM alpine:3.10
-LABEL maintainer "Abiola Ibrahim <abiola89@gmail.com>"
+# 指定创建的基础镜像
+FROM alpine:latest
+LABEL maintainer "danxiaonuo <danxiaonuo@danxiaonuo.me>"
 
-ARG version="1.0.3"
+ARG version="2.0.0"
 LABEL caddy_version="$version"
 
 # Let's Encrypt Agreement
@@ -37,7 +38,7 @@ RUN apk add --no-cache \
     openssh-client \
     tzdata
 
-# install caddy
+# 拷贝 caddy 二进制文件至安装目录
 COPY --from=builder /install/caddy /usr/bin/caddy
 
 # validate install
