@@ -1,8 +1,14 @@
 #!/bin/sh
 
-VERSION=${VERSION:-"master"}
+VERSION=${VERSION:-"1.0.3"}
 TELEMETRY=${ENABLE_TELEMETRY:-"true"}
 IMPORT="github.com/caddyserver/caddy"
+
+# version <1.0.1 needs to use old import path
+new_import=true
+if [ "$(echo $VERSION | cut -c1)" -eq 0 ] 2>/dev/null || [ "$VERSION" = "1.0.0" ]; then
+    IMPORT="github.com/mholt/caddy" && new_import=false
+fi
 
 # add `v` prefix for version numbers
 [ "$(echo $VERSION | cut -c1)" -ge 0 ] 2>/dev/null && VERSION="v$VERSION"
@@ -22,6 +28,13 @@ end_stage() {
     echo
 }
 
+use_new_import() (
+    cd $1
+    find . -name '*.go' | while read -r f; do
+        sed -i.bak 's/\/mholt\/caddy/\/caddyserver\/caddy/g' $f && rm $f.bak
+    done
+)
+
 get_package() {
     # go module require special dns handling
     if $go_mod && [ -f /dnsproviders/$1/$1.go ]; then
@@ -35,16 +48,34 @@ get_package() {
 
 dns_plugins() {
     git clone https://github.com/caddyserver/dnsproviders /dnsproviders
+    # temp hack for repo rename
+    if $new_import; then use_new_import /dnsproviders; fi
 }
 
 plugins() {
     mkdir -p /plugins
-    for plugin in $(echo $PLUGINS | tr "," " "); do \
-        import_package=$(get_package $plugin)
-        $go_mod || go get -v "$import_package" ; # not needed for modules
-        $go_mod && package="main" || package="caddyhttp"
-        printf "package $package\nimport _ \"$import_package\"" > \
-            /plugins/$plugin.go ; \
+
+    # for plugin in $(echo $PLUGINS | tr "," " "); do \
+    #     import_package=$(get_package $plugin)
+    #     $go_mod || go get -v "$import_package" ; # not needed for modules
+    #     $go_mod && package="main" || package="caddyhttp"
+    #     printf "package $package\nimport _ \"$import_package\"" > \
+    #         /plugins/$plugin.go ; \
+    # done
+
+    # Fix can't load package
+    # ref: https://github.com/abiosoft/caddy-docker/pull/223
+    local package="main"
+    $go_mod || package="caddyhttp"
+
+    for plugin in $(echo $PLUGINS | tr "," " "); do
+        local import_package=""
+        while [ -z $import_package ]; do
+            import_package="$(get_package $plugin)"
+        done
+        $go_mod || go get -v "$import_package" # not needed for modules
+        printf "package $package\nimport _ \"$import_package\"\n" > \
+            /plugins/$plugin.go
     done
 }
 
