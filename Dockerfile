@@ -50,7 +50,7 @@ RUN /usr/bin/caddy -version
 RUN /usr/bin/caddy -plugins
 
 # 暴露端口
-EXPOSE 80 443 2019
+EXPOSE 80 443
 # 挂载目录
 VOLUME /root/.caddy /srv
 # 工作目录
