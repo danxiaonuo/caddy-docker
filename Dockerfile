@@ -42,7 +42,7 @@ LABEL caddy_version="$version"
 # 自动申请Let's Encrypt证书
 ENV ACME_AGREE="true"
 
-# Telemetry Stats
+# 启动数据收集
 ENV ENABLE_TELEMETRY="$enable_telemetry"
 
 # 安装相关依赖
