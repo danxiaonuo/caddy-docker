@@ -20,6 +20,21 @@ RUN VERSION=${version} PLUGINS=${plugins} ENABLE_TELEMETRY=${enable_telemetry} /
 
 # 指定创建的基础镜像
 FROM alpine:latest
+# 作者描述信息
+MAINTAINER danxiaonuo
+# 语言设置
+ENV LANG zh_CN.UTF-8
+# 时区设置
+ENV TZ=Asia/Shanghai
+# 修改源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+# 更新源
+RUN apk upgrade
+# 同步时间
+RUN apk add -U tzdata \
+&& ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
+&& echo ${TZ} > /etc/timezone
+
 LABEL maintainer "danxiaonuo <danxiaonuo@danxiaonuo.me>"
 
 ARG version="2.0.0"
