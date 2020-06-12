@@ -1,23 +1,43 @@
 # 指定构建的基础镜像
 FROM golang:alpine as builder
+# 作者描述信息
+LABEL maintainer "danxiaonuo <danxiaonuo@danxiaonuo.me>"
+# 语言设置
+ENV LANG zh_CN.UTF-8
+# 时区设置
+ENV TZ=Asia/Shanghai
+# CADDY版本号
+ENV CADDY_SOURCE_VERSION=v2.0.0
 # 修改源
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 # 更新源
 RUN apk upgrade
-# 安装相关依赖包
-RUN apk add --no-cache git gcc musl-dev
+# 同步时间
+RUN apk add -U tzdata \
+&& ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
+&& echo ${TZ} > /etc/timezone
+# 安装相关依赖
+RUN apk add --no-cache git ca-certificates mailcap openssh-client
+# 切换工作目录
+WORKDIR /src
+# 克隆caddy代码
+RUN git clone -b $CADDY_SOURCE_VERSION https://github.com/caddyserver/caddy.git --single-branch
+# 切换工作目录
+WORKDIR /src/caddy/cmd/caddy
+# 获取最新代码
+RUN go get -d ./...
 # 拷贝编译脚本
-COPY builder.sh /usr/bin/builder.sh
-# 指定版本
-ARG version="master"
-# 指定编译插件
-ARG plugins="git,cache,cors,expires,realip,ipfilter,cloudflare,dnspod"
-# 启动数据收集
-ARG enable_telemetry="true"
-# 获取进程文件
-RUN go get -v github.com/abiosoft/parent
-# 运行编译
-RUN VERSION=${version} PLUGINS=${plugins} ENABLE_TELEMETRY=${enable_telemetry} /bin/sh /usr/bin/builder.sh
+COPY caddy-builder.sh /usr/bin/caddy-builder
+# 授予脚本权限
+RUN chmod +x /usr/bin/caddy-builder
+# 切换工作目录
+WORKDIR /src/custom-caddy/cmd/caddy
+# 编译模块
+RUN caddy-builder \
+    github.com/caddyserver/nginx-adapter \
+    github.com/hairyhenderson/caddy-teapot-module \
+    github.com/caddy-dns/cloudflare
+	
 
 # 指定创建的基础镜像
 FROM alpine:latest
@@ -27,6 +47,8 @@ LABEL maintainer "danxiaonuo <danxiaonuo@danxiaonuo.me>"
 ENV LANG zh_CN.UTF-8
 # 时区设置
 ENV TZ=Asia/Shanghai
+# CADDY版本号
+ENV CADDY_VERSION v2.0.0
 # 修改源
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 # 更新源
@@ -35,34 +57,34 @@ RUN apk upgrade
 RUN apk add -U tzdata \
 && ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
 && echo ${TZ} > /etc/timezone
-
-# 启动数据收集
-ENV ENABLE_TELEMETRY="$enable_telemetry"
-
 # 安装相关依赖
-RUN apk add --no-cache ca-certificates mailcap openssh-client
+RUN apk add --no-cache git ca-certificates mailcap openssh-client
 
 # 拷贝 caddy 二进制文件至安装目录
-COPY --from=builder /install/caddy /usr/bin/caddy
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 
-# 验证安装
-RUN /usr/bin/caddy -version
-RUN /usr/bin/caddy -plugins
+# 创建相关目录
+RUN set -eux; \
+	mkdir -p \
+		/config/caddy \
+		/data/caddy \
+		/etc/caddy \
+		/usr/share/caddy \
+	; \
+	wget -O /etc/caddy/Caddyfile "https://raw.githubusercontent.com/caddyserver/dist/master/config/Caddyfile"; \
+	wget -O /usr/share/caddy/index.html "https://raw.githubusercontent.com/caddyserver/dist/master/welcome/index.html"
+
+# 设置数据目录环境
+ENV XDG_CONFIG_HOME=/config
+ENV XDG_DATA_HOME=/data
 
 # 暴露端口
 EXPOSE 80 443
 # 挂载目录
-VOLUME /root/.caddy /srv
+VOLUME /config /data 
+
 # 工作目录
-WORKDIR /srv
-
-# 拷贝相关文件
-COPY Caddyfile /etc/Caddyfile
-COPY index.html /srv/index.html
-
-# 安装进程文件
-COPY --from=builder /go/bin/parent /bin/parent
+WORKDIR /data
 
 # 运行caddy
-ENTRYPOINT ["/bin/parent", "caddy"]
-CMD ["--conf", "/etc/Caddyfile", "--log", "stdout", "--agree"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
