@@ -58,7 +58,15 @@ RUN apk add -U tzdata \
 && ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
 && echo ${TZ} > /etc/timezone
 # 安装相关依赖
-RUN apk add --no-cache git ca-certificates mailcap openssh-client
+RUN apk add --no-cache --update ca-certificates asciidoctor libc6-compat libstdc++ pcre bash nodejs nodejs-npm git mailcap openssh-client
+
+# 安装字体库
+RUN apk add --no-cache --update font-adobe-100dpi ttf-dejavu fontconfig && mkdir /usr/share/fonts/win
+COPY ./font/. /usr/share/fonts/win/
+RUN chmod -R 777 /usr/share/fonts/win && fc-cache -f
+
+# 安装 PWA
+RUN npm install workbox-build gulp gulp-uglify readable-stream uglify-es --save-dev && npm update
 
 # 拷贝 caddy 二进制文件至安装目录
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
