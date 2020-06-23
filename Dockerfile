@@ -58,7 +58,7 @@ RUN apk add -U tzdata \
 && ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
 && echo ${TZ} > /etc/timezone
 # 安装相关依赖
-RUN apk add --no-cache --update ca-certificates asciidoctor libc6-compat libstdc++ pcre bash nodejs nodejs-npm git mailcap openssh-client
+RUN apk add --no-cache --update ca-certificates asciidoctor libc6-compat libstdc++ pcre bash nodejs nodejs-npm git mailcap openssh-client curl wget
 
 # 安装字体库
 RUN apk add --no-cache --update font-adobe-100dpi ttf-dejavu fontconfig && mkdir /usr/share/fonts/win
