@@ -59,6 +59,7 @@ RUN caddy-builder \
     github.com/vrongmeal/caddygit
 	
 
+# 构建基础镜像
 # 指定创建的基础镜像
 FROM alpine:latest
 # 作者描述信息
