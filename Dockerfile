@@ -35,7 +35,7 @@ WORKDIR /src/custom-caddy/cmd/caddy
 # 编译模块
 RUN caddy-builder \
     github.com/caddyserver/nginx-adapter \
-    github.com/hairyhenderson/caddy-teapot-module \
+    github.com/hairyhenderson/caddy-teapot-module@v0.0.1 \
     github.com/caddy-dns/cloudflare
 	
 
