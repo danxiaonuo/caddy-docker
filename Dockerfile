@@ -1,5 +1,6 @@
+# 构建可执行二进制文件
 # 指定构建的基础镜像
-FROM golang:alpine as builder
+FROM golang:1.14-alpine3.12 AS builder
 # 作者描述信息
 LABEL maintainer "danxiaonuo <danxiaonuo@danxiaonuo.me>"
 # 语言设置
@@ -10,14 +11,8 @@ ENV TZ=Asia/Shanghai
 ENV CADDY_SOURCE_VERSION=v2.1.1
 # 修改源
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
-# 更新源
-RUN apk upgrade
-# 同步时间
-RUN apk add -U tzdata \
-&& ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
-&& echo ${TZ} > /etc/timezone
-# 安装相关依赖
-RUN apk add --no-cache bash gcc musl-dev openssl openssh-client git ca-certificates mailcap 
+# 安装相关环境依赖
+RUN apk update && apk add --no-cache bash gcc musl-dev openssl openssh-client git ca-certificates mailcap 
 # 切换工作目录
 WORKDIR /src
 # 克隆caddy代码
