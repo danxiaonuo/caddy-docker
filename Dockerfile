@@ -72,8 +72,6 @@ LABEL maintainer "danxiaonuo <danxiaonuo@danxiaonuo.me>"
 ENV LANG zh_CN.UTF-8
 # 时区设置
 ENV TZ=Asia/Shanghai
-# CADDY版本号
-ENV CADDY_VERSION v2.0.0
 # 修改源
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 # 更新源
