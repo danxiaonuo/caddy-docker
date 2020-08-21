@@ -32,6 +32,7 @@ EOF
 
 set -x
 export CGO_ENABLED=0
+export GO111MODULE=off
 go get "$@"
 go build -trimpath -tags netgo -ldflags '-extldflags "-static" -s -w' -o /usr/bin/caddy
 /usr/bin/caddy version
