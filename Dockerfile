@@ -17,7 +17,7 @@ RUN apk add -U tzdata \
 && ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
 && echo ${TZ} > /etc/timezone
 # 安装相关依赖
-RUN apk add --no-cache bash gcc musl-dev go openssl openssh-client git ca-certificates mailcap 
+RUN apk add --no-cache bash gcc musl-dev openssl openssh-client git ca-certificates mailcap 
 # 切换工作目录
 WORKDIR /src
 # 克隆caddy代码
